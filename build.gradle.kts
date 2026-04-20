@@ -21,5 +21,6 @@ tasks.register("publishAllNativeLibrariesToMavenLocal") {
         ":core:native:exiv2:publishReleasePublicationToMavenLocal",
         ":core:native:taglib:publishReleasePublicationToMavenLocal",
         ":core:native:image-magick:publishReleasePublicationToMavenLocal",
+        ":core:native:ffmpeg-kit:publishReleasePublicationToMavenLocal",
     )
 }

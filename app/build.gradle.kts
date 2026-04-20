@@ -43,6 +43,8 @@ dependencies {
     implementation(project(":core:native:exiv2"))
     implementation(project(":core:native:taglib"))
     implementation(project(":core:native:image-magick"))
+    implementation(project(":core:native:ffmpeg-kit"))
+    implementation(files("$rootDir/core/native/ffmpeg-kit/libs/ffmpeg-kit.aar"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

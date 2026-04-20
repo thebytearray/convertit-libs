@@ -72,7 +72,7 @@ class ImageMagickRunner(
         val heartbeat = if (onMagickProgress != null) {
             thread(name = "imagemagick-progress", isDaemon = true) {
                 var step = 0
-                while (!Thread.currentThread().isInterrupted && process.isAlive) {
+                while (!Thread.currentThread().isInterrupted && process.isRunningCompat()) {
                     try {
                         Thread.sleep(320L)
                     } catch (_: InterruptedException) {
@@ -100,6 +100,14 @@ class ImageMagickRunner(
         return ImageMagickResult(exitCode, stdout, stderr)
     }
 
+
+    private fun Process.isRunningCompat(): Boolean =
+        try {
+            exitValue()
+            false
+        } catch (_: IllegalThreadStateException) {
+            true
+        }
 
     private fun buildEnvironment(): Map<String, String> {
         val env = mutableMapOf<String, String>()

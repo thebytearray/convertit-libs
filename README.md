@@ -17,7 +17,16 @@ dependencies {
     implementation("com.github.thebytearray:convertit-libs:exiv2:TAG")
     implementation("com.github.thebytearray:convertit-libs:taglib:TAG")
     implementation("com.github.thebytearray:convertit-libs:image-magick:TAG")
+    implementation("com.github.thebytearray:convertit-libs:ffmpeg-kit:TAG")
 }
 ```
 
 Use only the lines for the modules you depend on.
+
+For FFmpeg Kit, also add the checked-in AAR next to the module (same layout as this repo):
+
+```kotlin
+implementation(files("path/to/convertit-libs/core/native/ffmpeg-kit/libs/ffmpeg-kit.aar"))
+```
+
+Or keep a copy of `libs/ffmpeg-kit.aar` in your project and point `files(...)` at it.
