@@ -1,6 +1,7 @@
 package org.thebytearray.convertit.gradle
 
 import com.android.build.api.dsl.LibraryExtension
+import java.net.URI
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -52,6 +53,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         configureKotlinAndroid()
 
         afterEvaluate {
+            val slug = githubRepositorySlug()
             extensions.configure<PublishingExtension>("publishing") {
                 publications {
                     register<MavenPublication>("release") {
@@ -61,7 +63,36 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                         from(project.components.getByName("release"))
                     }
                 }
+                if (slug != null) {
+                    val parts = slug.split("/")
+                    if (parts.size == 2) {
+                        val owner = parts[0]
+                        val repo = parts[1]
+                        repositories {
+                            maven {
+                                name = "GitHubPackages"
+                                url = URI.create("https://maven.pkg.github.com/$owner/$repo")
+                                credentials {
+                                    username = project.findProperty("gpr.user") as String?
+                                        ?: System.getenv("GITHUB_ACTOR")
+                                        ?: ""
+                                    password = project.findProperty("gpr.key") as String?
+                                        ?: System.getenv("GITHUB_TOKEN")
+                                        ?: ""
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * `GITHUB_REPOSITORY` in Actions is `owner/repo`. Local publish can use [github.packages.repository].
+     */
+    private fun Project.githubRepositorySlug(): String? {
+        System.getenv("GITHUB_REPOSITORY")?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+        return (findProperty("github.packages.repository") as String?)?.trim()?.takeIf { it.isNotEmpty() }
     }
 }

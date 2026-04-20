@@ -6,8 +6,10 @@ plugins {
     id("org.thebytearray.convertit.android.library") apply false
 }
 
-group = "com.github.thebytearray.convertitlibs"
-version = "1.0.0-SNAPSHOT"
+group = findProperty("publishGroup")?.toString() ?: "io.github.thebytearray"
+version = findProperty("publishVersion")?.toString()
+    ?: findProperty("version")?.toString()
+    ?: "1.0.0-SNAPSHOT"
 
 subprojects {
     group = rootProject.group
@@ -22,5 +24,16 @@ tasks.register("publishAllNativeLibrariesToMavenLocal") {
         ":core:native:taglib:publishReleasePublicationToMavenLocal",
         ":core:native:image-magick:publishReleasePublicationToMavenLocal",
         ":core:native:ffmpeg-kit:publishReleasePublicationToMavenLocal",
+    )
+}
+
+tasks.register("publishAllNativeLibrariesToGitHubPackages") {
+    group = "publishing"
+    description = "Publishes all :core:native:* Android libraries to GitHub Packages (requires gpr.* or GITHUB_TOKEN)."
+    dependsOn(
+        ":core:native:exiv2:publishReleasePublicationToGitHubPackagesRepository",
+        ":core:native:taglib:publishReleasePublicationToGitHubPackagesRepository",
+        ":core:native:image-magick:publishReleasePublicationToGitHubPackagesRepository",
+        ":core:native:ffmpeg-kit:publishReleasePublicationToGitHubPackagesRepository",
     )
 }

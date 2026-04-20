@@ -1,16 +1,43 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+# Gradle
+.gradle/
+**/build/
+build/
 
+# Local machine / SDK (never commit)
+local.properties
+**/local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Native / CMake (NDK)
+.cxx/
+.externalNativeBuild/
+
+# Kotlin
+.kotlin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & heap
+*.log
+*.hprof
+
+# Signing (keep keys out of git)
+*.jks
+*.keystore
+
+# Built app outputs (if copied outside build/)
+*.apk
+*.aab
+*.ap_
+
+# Misc
+/captures
+*.orig
