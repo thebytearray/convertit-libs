@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuremap [
+  <!ELEMENT configuremap (configure)+>
+  <!ATTLIST configuremap xmlns CDATA #FIXED ''>
+  <!ELEMENT configure EMPTY>
+  <!ATTLIST configure xmlns CDATA #FIXED '' name NMTOKEN #REQUIRED
+    value CDATA #REQUIRED>
+]>
+<!--
+  ImageMagick build configuration for ConvertIt Pro (Android).
+  Paths use the app files dir (copied from assets on first run). The magick
+  binary is loaded from nativeLibraryDir as libmagick_bin.so.
+-->
+<configuremap>
+  <configure name="CC" value="clang"/>
+  <configure name="CFLAGS" value="-DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16 -DMAGICKCORE_HEIC_DELEGATE=1 -DANDROID"/>
+  <configure name="CODER_PATH" value="/data/data/org.thebytearray.convertit/files/usr/etc/ImageMagick-7/"/>
+  <configure name="CONFIGURE_PATH" value="/data/data/org.thebytearray.convertit/files/usr/etc/ImageMagick-7/"/>
+  <configure name="CONFIGURE" value=""/>
+  <configure name="COPYRIGHT" value="Copyright (C) 1999 ImageMagick Studio LLC"/>
+  <configure name="CPPFLAGS" value="-I/data/data/org.thebytearray.convertit/files/usr/include/ImageMagick-7"/>
+  <configure name="CXXFLAGS" value="-Oz -fstack-protector-strong"/>
+  <configure name="CXX" value="clang++"/>
+  <configure name="DEFS" value="-DHAVE_CONFIG_H"/>
+  <configure name="DELEGATES" value="bzlib fftw freetype heic jng jpeg lcms lzma png tiff webp xml zlib"/>
+  <configure name="DISTCHECK_CONFIG_FLAGS" value=""/>
+  <configure name="DOCUMENTATION_PATH" value="/data/data/org.thebytearray.convertit/files/usr/share/doc/ImageMagick-7"/>
+  <configure name="EXEC-PREFIX" value="/data/data/org.thebytearray.convertit/files/usr"/>
+  <configure name="EXECUTABLE_PATH" value="/data/data/org.thebytearray.convertit/files/usr/bin"/>
+  <configure name="FEATURES" value="Cipher DPC HDRI OpenMP(3.1)"/>
+  <configure name="FILTER_PATH" value="/data/data/org.thebytearray.convertit/files/usr/lib/ImageMagick-7.1.2/modules-Q16HDRI/filters"/>
+  <configure name="GIT_REVISION" value=""/>
+  <configure name="HOST" value="android"/>
+  <configure name="INCLUDE_PATH" value="/data/data/org.thebytearray.convertit/files/usr/include/ImageMagick-7"/>
+  <configure name="LDFLAGS" value="-llog -lz -lc -lm"/>
+  <configure name="LIBRARY_PATH" value="/data/data/org.thebytearray.convertit/files/usr/lib/ImageMagick-7.1.2"/>
+  <configure name="LIBS" value="-llog -lz -lc -lm"/>
+  <configure name="LIB_VERSION_NUMBER" value="7,1,2,18"/>
+  <configure name="LIB_VERSION" value="0x712"/>
+  <configure name="NAME" value="ImageMagick"/>
+  <configure name="PCFLAGS" value="-DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16"/>
+  <configure name="PREFIX" value="/data/data/org.thebytearray.convertit/files/usr"/>
+  <configure name="QuantumDepth" value="16"/>
+  <configure name="RELEASE_DATE" value="2026-03-22"/>
+  <configure name="SHAREARCH_PATH" value="/data/data/org.thebytearray.convertit/files/usr/lib/ImageMagick-7.1.2/config-Q16HDRI"/>
+  <configure name="SHARE_PATH" value="/data/data/org.thebytearray.convertit/files/usr/share/ImageMagick-7"/>
+  <configure name="TARGET_CPU" value="android"/>
+  <configure name="TARGET_OS" value="linux-android"/>
+  <configure name="TARGET_VENDOR" value="unknown"/>
+  <configure name="VERSION" value="7.1.2"/>
+  <configure name="WEBSITE" value="https://imagemagick.org"/>
+</configuremap>
