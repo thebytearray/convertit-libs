@@ -34,10 +34,18 @@ tasks.register("publishAllNativeLibrariesToMavenLocal") {
     )
 }
 
-// Single entry point: Sonatype close/release task depends (via the nexus plugin) on publishing to staging.
 tasks.register("publishAllNativeLibrariesToMavenCentral") {
     group = "publishing"
-    description =
-        "Publishes all :core:native:* Android libraries to Maven Central (requires signing + sonatype + Central credentials)."
-    dependsOn("closeAndReleaseSonatypeStagingRepository")
+    val ver = findProperty("publishVersion")?.toString()
+        ?: findProperty("version")?.toString()
+        ?: version.toString()
+    if (ver.endsWith("-SNAPSHOT")) {
+        description =
+            "Publishes to Sonatype **snapshot** repo (https://central.sonatype.com/repository/maven-snapshots/). No close/release."
+        dependsOn("publishToSonatype")
+    } else {
+        description =
+            "Publishes to Maven Central (release) via Sonatype staging, then close + release. Requires signing + Central token."
+        dependsOn("closeAndReleaseSonatypeStagingRepository")
+    }
 }

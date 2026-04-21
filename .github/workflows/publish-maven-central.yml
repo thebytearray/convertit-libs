@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Maven version to publish (e.g. 1.0.0 or 1.0.0-SNAPSHOT)
+        description: "Maven version (use 1.0.0 for a release; use 1.0.0-SNAPSHOT only for snapshot — no close/release step)"
         required: true
-        default: "1.0.0-SNAPSHOT"
+        default: "1.0.0"
   push:
     tags:
       - "v*"
