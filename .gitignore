@@ -18,8 +18,8 @@ out/
 .cxx/
 .externalNativeBuild/
 
-# ImageMagick Android prebuilts: downloaded in CI (see scripts/fetch-imagemagick-jnilibs.sh); do not commit.
 core/native/image-magick/src/main/jniLibs/**/*.so
+core/native/image-magick/src/main/jniLibs/*/*.so
 
 # Kotlin
 .kotlin/
