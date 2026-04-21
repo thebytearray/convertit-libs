@@ -2,57 +2,37 @@
 
 Source: [https://github.com/thebytearray/convertit-libs](https://github.com/thebytearray/convertit-libs)
 
-Published Maven group id: `io.github.thebytearray` (override locally with `-PpublishGroup=...`).
+The published Maven `groupId` is **`org.thebytearray.lib`** (override at publish time with `-PpublishGroup=...` if needed). Artifact names match Gradle project names: **`exiv2`**, **`taglib`**, **`image-magick`**.
 
-## GitHub Packages
+## Maven Central (consumers)
 
-1. Create a personal access token (classic) with `read:packages` (and `repo` if the repo is private).
+1. Ensure `mavenCentral()` is on your `repositories` (default for many Android/Gradle projects).
 
-2. In `settings.gradle.kts` (or the `dependencyResolutionManagement` block), add the GitHub Packages Maven repository and credentials:
-
-```kotlin
-maven {
-    url = uri("https://maven.pkg.github.com/thebytearray/convertit-libs")
-    credentials {
-        username = providers.environmentVariable("GITHUB_PACKAGES_USER").orElse("thebytearray").get()
-        password = providers.environmentVariable("GITHUB_PACKAGES_TOKEN").get()
-    }
-}
-```
-
-Set `GITHUB_PACKAGES_TOKEN` to your PAT (or use Gradle `~/.gradle/gradle.properties`: `gpr.key=` / `gpr.user=` for local CLI publishes).
-
-3. Add dependencies (artifact ids match Gradle project names: `exiv2`, `taglib`, `image-magick`, `ffmpeg-kit`):
+2. Add dependencies, replacing `VERSION` with the [release you want on Central](https://search.maven.org/search?q=org.thebytearray.lib):
 
 ```kotlin
 dependencies {
-    implementation("io.github.thebytearray:exiv2:VERSION")
-    implementation("io.github.thebytearray:taglib:VERSION")
-    implementation("io.github.thebytearray:image-magick:VERSION")
-    implementation("io.github.thebytearray:ffmpeg-kit:VERSION")
+    implementation("org.thebytearray.lib:exiv2:VERSION")
+    implementation("org.thebytearray.lib:taglib:VERSION")
+    implementation("org.thebytearray.lib:image-magick:VERSION")
 }
 ```
 
-Replace `VERSION` with the release you published (see Actions workflow or the Packages tab on GitHub).
+3. This repository is published from CI using [.github/workflows/publish-maven-central.yml](.github/workflows/publish-maven-central.yml) (on `v*` tags, when a GitHub Release is published, or manual `workflow_dispatch`).
 
-Publishing is automated by [.github/workflows/publish-github-packages.yml](.github/workflows/publish-github-packages.yml) (on `v*` tags, GitHub Releases, or manual `workflow_dispatch`).
+## ImageMagick native pieces (`:core:native:image-magick`)
 
-## JitPack (alternative)
+Native binaries for `image-magick` are **not** built in this repository. Run [`scripts/fetch-imagemagick-jnilibs.sh`](scripts/fetch-imagemagick-jnilibs.sh) to download the **latest** [Android-ImageMagick7](https://github.com/codewithtamim/Android-ImageMagick7) release (GitHub API) and install `libmagick_bin.so` plus the matching `.so` set under [`core/native/image-magick/src/main/jniLibs/`](core/native/image-magick/src/main/jniLibs/). The `usr/` config tree under that module’s `src/main/assets/` is maintained here as source; the fetch script does not change it. Those prebuilt `*.so` are **not committed** (see `.gitignore`); the [publish workflow](.github/workflows/publish-maven-central.yml) runs the same fetch before publishing to Central.
 
-1. Register JitPack:
+## Publishing (maintainers)
 
-```kotlin
-maven { url = uri("https://jitpack.io") }
-```
+Configure **Sonatype Central** credentials and a PGP key as Central expects (see [Central Portal / publish guide](https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/)). For GitHub Actions, add these repository **secrets** (consumed as Gradle `ORG_GRADLE_PROJECT_*` project properties in the workflow):
 
-2. Use a [git tag](https://github.com/thebytearray/convertit-libs/tags) and confirm coordinates on [JitPack](https://jitpack.io/#thebytearray/convertit-libs). Artifact names follow submodule names (e.g. `exiv2`, `taglib`).
+| Secret | Purpose |
+|--------|---------|
+| `MAVEN_CENTRAL_USERNAME` | Central user token username |
+| `MAVEN_CENTRAL_PASSWORD` | Central user token password |
+| `MAVEN_SIGNING_KEY` | ASCII-armored private signing key |
+| `MAVEN_SIGNING_PASSWORD` | Key passphrase (if the key is encrypted) |
 
-## FFmpeg Kit AAR
-
-The sample app also uses the checked-in AAR:
-
-```kotlin
-implementation(files("path/to/convertit-libs/core/native/ffmpeg-kit/libs/ffmpeg-kit.aar"))
-```
-
-Or copy `libs/ffmpeg-kit.aar` into your project and point `files(...)` at it.
+For local dry runs, you can use [`publishAllNativeLibrariesToMavenLocal`](build.gradle.kts) with a local SDK and, when applicable, the same `signingKey` / `signingPassword` and `sonatypeUsername` / `sonatypePassword` in `~/.gradle/gradle.properties` if you need to test signing or staging end-to-end. Run `./scripts/fetch-imagemagick-jnilibs.sh` first so `:core:native:image-magick` can assemble with jniLibs, matching CI.

@@ -1,7 +1,6 @@
 package org.thebytearray.convertit.gradle
 
 import com.android.build.api.dsl.LibraryExtension
-import java.net.URI
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -9,7 +8,9 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
+import org.gradle.plugins.signing.SigningExtension
 
 /**
  * Convention for Android libraries (e.g. native JNI wrappers): shared SDK, Java/Kotlin 17, packaging.
@@ -19,6 +20,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         apply(plugin = "com.android.library")
         apply(plugin = "maven-publish")
+        apply(plugin = "signing")
 
         extensions.configure<LibraryExtension> {
             compileSdk = 36
@@ -53,7 +55,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         configureKotlinAndroid()
 
         afterEvaluate {
-            val slug = githubRepositorySlug()
             extensions.configure<PublishingExtension>("publishing") {
                 publications {
                     register<MavenPublication>("release") {
@@ -61,38 +62,50 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                         artifactId = project.name
                         version = project.version.toString()
                         from(project.components.getByName("release"))
-                    }
-                }
-                if (slug != null) {
-                    val parts = slug.split("/")
-                    if (parts.size == 2) {
-                        val owner = parts[0]
-                        val repo = parts[1]
-                        repositories {
-                            maven {
-                                name = "GitHubPackages"
-                                url = URI.create("https://maven.pkg.github.com/$owner/$repo")
-                                credentials {
-                                    username = project.findProperty("gpr.user") as String?
-                                        ?: System.getenv("GITHUB_ACTOR")
-                                        ?: ""
-                                    password = project.findProperty("gpr.key") as String?
-                                        ?: System.getenv("GITHUB_TOKEN")
-                                        ?: ""
+                        pom {
+                            name.set(project.name)
+                            description.set(
+                                "Android JNI wrapper / native build for ${
+                                    project.name.replace(
+                                        "-",
+                                        " ",
+                                    )
+                                } (Convertit Libs).",
+                            )
+                            url.set("https://github.com/thebytearray/convertit-libs")
+                            licenses {
+                                license {
+                                    name.set("GNU General Public License v3.0 or later")
+                                    url.set("https://www.gnu.org/licenses/gpl-3.0.html")
                                 }
+                            }
+                            developers {
+                                developer {
+                                    name.set("The Byte Array")
+                                }
+                            }
+                            scm {
+                                connection.set("scm:git:git://github.com/thebytearray/convertit-libs.git")
+                                developerConnection.set("scm:git:git@github.com:thebytearray/convertit-libs.git")
+                                url.set("https://github.com/thebytearray/convertit-libs")
                             }
                         }
                     }
                 }
             }
-        }
-    }
 
-    /**
-     * `GITHUB_REPOSITORY` in Actions is `owner/repo`. Local publish can use [github.packages.repository].
-     */
-    private fun Project.githubRepositorySlug(): String? {
-        System.getenv("GITHUB_REPOSITORY")?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
-        return (findProperty("github.packages.repository") as String?)?.trim()?.takeIf { it.isNotEmpty() }
+            val pgpKey = (findProperty("signingKey") as String?)?.trim()?.takeIf { it.isNotEmpty() }
+            val pgpPassword = (findProperty("signingPassword") as String?)?.trim()?.takeIf { it.isNotEmpty() }
+            val releasePublication = (extensions.getByName("publishing") as PublishingExtension)
+                .publications
+                .getByName("release")
+            extensions.configure<SigningExtension>("signing") {
+                isRequired = pgpKey != null && pgpPassword != null
+                if (pgpKey != null && pgpPassword != null) {
+                    useInMemoryPgpKeys(pgpKey, pgpPassword)
+                }
+                sign(releasePublication)
+            }
+        }
     }
 }

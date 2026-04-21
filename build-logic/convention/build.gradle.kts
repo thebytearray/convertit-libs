@@ -29,10 +29,6 @@ tasks.validatePlugins {
 
 gradlePlugin {
     plugins {
-        register("androidApplication") {
-            id = "org.thebytearray.convertit.android.application"
-            implementationClass = "org.thebytearray.convertit.gradle.AndroidApplicationConventionPlugin"
-        }
         register("androidLibrary") {
             id = "org.thebytearray.convertit.android.library"
             implementationClass = "org.thebytearray.convertit.gradle.AndroidLibraryConventionPlugin"

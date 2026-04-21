@@ -24,8 +24,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Convertit Libs"
-include(":app")
 include(":core:native:exiv2")
 include(":core:native:taglib")
 include(":core:native:image-magick")
-include(":core:native:ffmpeg-kit")

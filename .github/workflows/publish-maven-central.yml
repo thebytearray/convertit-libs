@@ -1,0 +1,71 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Maven version to publish (e.g. 1.0.0 or 1.0.0-SNAPSHOT)
+        required: true
+        default: "1.0.0-SNAPSHOT"
+  push:
+    tags:
+      - "v*"
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK and CMake
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "ndk;29.0.13113456" "cmake;3.22.1" "platforms;android-36" "build-tools;36.1.0"
+
+      - name: Fetch ImageMagick Android binaries
+        run: |
+          chmod +x gradlew scripts/fetch-imagemagick-jnilibs.sh scripts/fetch_imagemagick_jnilibs.py
+          ./scripts/fetch-imagemagick-jnilibs.sh
+
+      - name: Resolve publish version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            RAW="${{ github.event.release.tag_name }}"
+            VERSION="${RAW#v}"
+          else
+            RAW="${GITHUB_REF_NAME}"
+            VERSION="${RAW#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: $VERSION"
+
+      - name: Publish to Central
+        env:
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew publishAllNativeLibrariesToMavenCentral \
+            -PpublishVersion="${{ steps.version.outputs.version }}" \
+            --no-daemon \
+            -x test
