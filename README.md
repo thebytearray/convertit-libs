@@ -19,3 +19,7 @@ dependencies {
 ```
 
 3. License and third-party credits: [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Native libraries (Exiv2, ImageMagick, TagLib)
+
+API overview, `minSdk`, build notes, and Kotlin examples: [docs/native-libraries.md](docs/native-libraries.md).
