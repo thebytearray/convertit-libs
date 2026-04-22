@@ -24,6 +24,17 @@ nexusPublishing {
     }
 }
 
+
+val publishNativeToSonatype = listOf(
+    ":core:native:exiv2:publishToSonatype",
+    ":core:native:taglib:publishToSonatype",
+    ":core:native:image-magick:publishToSonatype",
+)
+
+tasks.named("closeSonatypeStagingRepository") {
+    dependsOn(publishNativeToSonatype)
+}
+
 tasks.register("publishAllNativeLibrariesToMavenLocal") {
     group = "publishing"
     description = "Publishes all :core:native:* Android libraries to Maven Local (local verification only)."
@@ -42,7 +53,7 @@ tasks.register("publishAllNativeLibrariesToMavenCentral") {
     if (ver.endsWith("-SNAPSHOT")) {
         description =
             "Publishes to Sonatype **snapshot** repo (https://central.sonatype.com/repository/maven-snapshots/). No close/release."
-        dependsOn("publishToSonatype")
+        dependsOn(publishNativeToSonatype)
     } else {
         description =
             "Publishes to Maven Central (release) via Sonatype staging, then close + release. Requires signing + Central token."
