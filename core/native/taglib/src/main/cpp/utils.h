@@ -38,61 +38,90 @@ jclass mapEntryClass = nullptr;
 jmethodID getKeyMethod = nullptr;
 jmethodID getValueMethod = nullptr;
 
+#define JNI_CHECK(env, msg) \
+    if ((env)->ExceptionCheck()) { \
+        (env)->ExceptionDescribe(); \
+        (env)->ExceptionClear(); \
+        return JNI_ERR; \
+    }
+
+#define JNI_FIND_CLASS(env, name) \
+    ({ \
+        jclass _clz = (env)->FindClass(name); \
+        JNI_CHECK(env, "FindClass(" name ") failed"); \
+        _clz; \
+    })
+
+#define JNI_GET_METHOD(env, clz, name, sig) \
+    ({ \
+        jmethodID _mid = (env)->GetMethodID(clz, name, sig); \
+        JNI_CHECK(env, "GetMethodID(" name ") failed"); \
+        _mid; \
+    })
+
+static bool RegisterJniClasses(JNIEnv *env) {
+    jclass _stringClass = JNI_FIND_CLASS(env, "java/lang/String");
+    stringClass = reinterpret_cast<jclass>(env->NewGlobalRef(_stringClass));
+    env->DeleteLocalRef(_stringClass);
+
+    jclass _hashMapClass = JNI_FIND_CLASS(env, "java/util/HashMap");
+    hashMapClass = reinterpret_cast<jclass>(env->NewGlobalRef(_hashMapClass));
+    env->DeleteLocalRef(_hashMapClass);
+    hashMapInit = JNI_GET_METHOD(env, hashMapClass, "<init>", "(I)V");
+    hashMapPut = JNI_GET_METHOD(env, hashMapClass, "put",
+                                "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+    jclass _metadataClass = JNI_FIND_CLASS(env, "org/thebytearray/taglib_android/Metadata");
+    metadataClass = reinterpret_cast<jclass>(env->NewGlobalRef(_metadataClass));
+    env->DeleteLocalRef(_metadataClass);
+    metadataConstructor = JNI_GET_METHOD(env, metadataClass, "<init>",
+                                         "(Ljava/util/HashMap;[Lorg/thebytearray/taglib_android/Picture;)V");
+
+    jclass _audioPropertiesClass = JNI_FIND_CLASS(env, "org/thebytearray/taglib_android/AudioProperties");
+    audioPropertiesClass = reinterpret_cast<jclass>(env->NewGlobalRef(_audioPropertiesClass));
+    env->DeleteLocalRef(_audioPropertiesClass);
+    audioPropertiesConstructor = JNI_GET_METHOD(env, audioPropertiesClass, "<init>", "(IIII)V");
+
+    jclass _pictureClass = JNI_FIND_CLASS(env, "org/thebytearray/taglib_android/Picture");
+    pictureClass = reinterpret_cast<jclass>(env->NewGlobalRef(_pictureClass));
+    env->DeleteLocalRef(_pictureClass);
+    pictureConstructor = JNI_GET_METHOD(env, pictureClass, "<init>",
+                                        "([BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+    pictureGetData = JNI_GET_METHOD(env, pictureClass, "getData", "()[B");
+    pictureGetDescription = JNI_GET_METHOD(env, pictureClass, "getDescription", "()Ljava/lang/String;");
+    pictureGetPictureType = JNI_GET_METHOD(env, pictureClass, "getPictureType", "()Ljava/lang/String;");
+    pictureGetMimeType = JNI_GET_METHOD(env, pictureClass, "getMimeType", "()Ljava/lang/String;");
+
+    jclass _entrySetClass = JNI_FIND_CLASS(env, "java/util/Set");
+    entrySetClass = reinterpret_cast<jclass>(env->NewGlobalRef(_entrySetClass));
+    env->DeleteLocalRef(_entrySetClass);
+    iteratorMethod = JNI_GET_METHOD(env, entrySetClass, "iterator", "()Ljava/util/Iterator;");
+    entrySetMethod = JNI_GET_METHOD(env, hashMapClass, "entrySet", "()Ljava/util/Set;");
+
+    jclass _iteratorClass = JNI_FIND_CLASS(env, "java/util/Iterator");
+    iteratorClass = reinterpret_cast<jclass>(env->NewGlobalRef(_iteratorClass));
+    env->DeleteLocalRef(_iteratorClass);
+    hasNextMethod = JNI_GET_METHOD(env, iteratorClass, "hasNext", "()Z");
+    nextMethod = JNI_GET_METHOD(env, iteratorClass, "next", "()Ljava/lang/Object;");
+
+    jclass _mapEntryClass = JNI_FIND_CLASS(env, "java/util/Map$Entry");
+    mapEntryClass = reinterpret_cast<jclass>(env->NewGlobalRef(_mapEntryClass));
+    env->DeleteLocalRef(_mapEntryClass);
+    getKeyMethod = JNI_GET_METHOD(env, mapEntryClass, "getKey", "()Ljava/lang/Object;");
+    getValueMethod = JNI_GET_METHOD(env, mapEntryClass, "getValue", "()Ljava/lang/Object;");
+
+    return true;
+}
+
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnv *env;
     if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
     }
 
-    jclass _stringClass = env->FindClass("java/lang/String");
-    stringClass = reinterpret_cast<jclass>(env->NewGlobalRef(_stringClass));
-    env->DeleteLocalRef(_stringClass);
-
-    jclass _hashMapClass = env->FindClass("java/util/HashMap");
-    hashMapClass = reinterpret_cast<jclass>(env->NewGlobalRef(_hashMapClass));
-    env->DeleteLocalRef(_hashMapClass);
-    hashMapInit = env->GetMethodID(hashMapClass, "<init>", "(I)V");
-    hashMapPut = env->GetMethodID(hashMapClass, "put",
-                                  "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-
-    jclass _metadataClass = env->FindClass("org/thebytearray/taglib_android/Metadata");
-    metadataClass = reinterpret_cast<jclass>(env->NewGlobalRef(_metadataClass));
-    env->DeleteLocalRef(_metadataClass);
-    metadataConstructor = env->GetMethodID(metadataClass, "<init>",
-                                           "(Ljava/util/HashMap;[Lorg/thebytearray/taglib_android/Picture;)V");
-
-    jclass _audioPropertiesClass = env->FindClass("org/thebytearray/taglib_android/AudioProperties");
-    audioPropertiesClass = reinterpret_cast<jclass>(env->NewGlobalRef(_audioPropertiesClass));
-    env->DeleteLocalRef(_audioPropertiesClass);
-    audioPropertiesConstructor = env->GetMethodID(audioPropertiesClass, "<init>", "(IIII)V");
-
-    jclass _pictureClass = env->FindClass("org/thebytearray/taglib_android/Picture");
-    pictureClass = reinterpret_cast<jclass>(env->NewGlobalRef(_pictureClass));
-    env->DeleteLocalRef(_pictureClass);
-    pictureConstructor = env->GetMethodID(pictureClass, "<init>",
-                                          "([BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
-    pictureGetData = env->GetMethodID(pictureClass, "getData", "()[B");
-    pictureGetDescription = env->GetMethodID(pictureClass, "getDescription", "()Ljava/lang/String;");
-    pictureGetPictureType = env->GetMethodID(pictureClass, "getPictureType", "()Ljava/lang/String;");
-    pictureGetMimeType = env->GetMethodID(pictureClass, "getMimeType", "()Ljava/lang/String;");
-
-    jclass _entrySetClass = env->FindClass("java/util/Set");
-    entrySetClass = reinterpret_cast<jclass>(env->NewGlobalRef(_entrySetClass));
-    env->DeleteLocalRef(_entrySetClass);
-    iteratorMethod = env->GetMethodID(entrySetClass, "iterator", "()Ljava/util/Iterator;");
-    entrySetMethod = env->GetMethodID(hashMapClass, "entrySet", "()Ljava/util/Set;");
-
-    jclass _iteratorClass = env->FindClass("java/util/Iterator");
-    iteratorClass = reinterpret_cast<jclass>(env->NewGlobalRef(_iteratorClass));
-    env->DeleteLocalRef(_iteratorClass);
-    hasNextMethod = env->GetMethodID(iteratorClass, "hasNext", "()Z");
-    nextMethod = env->GetMethodID(iteratorClass, "next", "()Ljava/lang/Object;");
-
-    jclass _mapEntryClass = env->FindClass("java/util/Map$Entry");
-    mapEntryClass = reinterpret_cast<jclass>(env->NewGlobalRef(_mapEntryClass));
-    env->DeleteLocalRef(_mapEntryClass);
-    getKeyMethod = env->GetMethodID(mapEntryClass, "getKey", "()Ljava/lang/Object;");
-    getValueMethod = env->GetMethodID(mapEntryClass, "getValue", "()Ljava/lang/Object;");
+    if (!RegisterJniClasses(env)) {
+        return JNI_ERR;
+    }
 
     return JNI_VERSION_1_6;
 }
