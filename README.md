@@ -18,7 +18,7 @@ dependencies {
 }
 ```
 
-3. License and third-party credits: [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+3. Licences: our wrapper code is **LGPL-2.1-or-later** ([LICENSE](LICENSE)); each bundled upstream library keeps its own licence. The per-artifact breakdown, including which artifacts suit closed-source apps (`exiv2` does not: Exiv2 is GPL), is in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Native libraries (Exiv2, ImageMagick, TagLib)
 

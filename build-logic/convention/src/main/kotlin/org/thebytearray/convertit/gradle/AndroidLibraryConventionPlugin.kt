@@ -73,10 +73,14 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                                 } (Convertit Libs).",
                             )
                             url.set("https://github.com/thebytearray/convertit-libs")
+                            // The wrapper is LGPL; each artifact also carries the licences of the
+                            // upstream code it bundles (see THIRD_PARTY_NOTICES.md).
                             licenses {
-                                license {
-                                    name.set("GNU General Public License v3.0 or later")
-                                    url.set("https://www.gnu.org/licenses/gpl-3.0.html")
+                                (artifactLicenses[project.name] ?: listOf(WRAPPER_LICENSE)).forEach { (licenseName, licenseUrl) ->
+                                    license {
+                                        name.set(licenseName)
+                                        url.set(licenseUrl)
+                                    }
                                 }
                             }
                             developers {
@@ -109,3 +113,28 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         }
     }
 }
+
+private val WRAPPER_LICENSE =
+    "GNU Lesser General Public License v2.1 or later" to "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+
+/** Upstream licences bundled in each artifact, after the wrapper's own. */
+private val artifactLicenses = mapOf(
+    "taglib" to listOf(
+        WRAPPER_LICENSE,
+        "TagLib: GNU Lesser General Public License v2.1 only OR Mozilla Public License 1.1" to
+            "https://github.com/taglib/taglib/blob/master/COPYING.LGPL",
+    ),
+    "image-magick" to listOf(
+        WRAPPER_LICENSE,
+        "ImageMagick License" to "https://imagemagick.org/script/license.php",
+        "libheif and libde265: GNU Lesser General Public License v3.0 or later" to
+            "https://www.gnu.org/licenses/lgpl-3.0.html",
+        "Other bundled libraries: see THIRD_PARTY_NOTICES.md" to
+            "https://github.com/thebytearray/convertit-libs/blob/main/THIRD_PARTY_NOTICES.md",
+    ),
+    // Exiv2 is GPL, so the combined library is GPL-2.0-or-later.
+    "exiv2" to listOf(
+        "GNU General Public License v2.0 or later (Exiv2)" to "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+        WRAPPER_LICENSE,
+    ),
+)
